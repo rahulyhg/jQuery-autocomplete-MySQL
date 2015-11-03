@@ -1,0 +1,85 @@
+<!doctype html>
+<html>
+
+<head>
+
+  <!-- links to necessary jQuery libraries for running autocomplete see  https://jqueryui.com/autocomplete/   -->
+
+<link rel="stylesheet" type="text/css" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1/themes/redmond/jquery-ui.css"> 
+
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script> 
+
+<script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1/jquery-ui.min.js"></script> 
+
+</head>
+
+<body>
+
+<!-- simple HTML for input and hidden paragraph tag that can be filled if there are no matching names  -->
+<fieldset> 
+
+  <legend>Get info about a user</legend> 
+
+    <p>Start typing the name of user (first or last)</p> 
+
+      <p>  <input  id="get_name"  size="30" maxlength="45" /> </p> 
+
+        <input type="hidden" id="person_id" name="person_id" /> 
+
+       <p id="empty-message"></p>
+
+</fieldset> 
+
+
+
+<script>
+
+$( "#get_name" ).autocomplete({
+
+  minLength: 2,//starting search after two characters are typed avoids searches for "everything with an a in it"
+
+/* This function attaches the autocomplete input value to the ac_term variable,
+    sends them to getinfo.php and returns a json array which includes concatenated
+    first and last names and associated person id numbers to be used in the MySQL query */
+   source: function (request, response) {
+      $.ajax({
+         url: '/getinfo.php?ac_term=' + $('#get_name').val(),   
+         data: request,
+         success: response,
+         error: function () {
+          response([]);
+            },
+         dataType:'json',
+
+       });//end $.ajax({...
+    },// end source: function...
+
+     /*This response function handles typed words with no match.
+         If there is no match an empty message note will be displayed in the HTML tag above.
+         Another response may be to echo a link and prompt the user to enter a new name into the system */
+
+    response: function(event, ui) {
+       if (ui.content.length == 0) {
+           $("#empty-message").text("No results found");
+         } else {
+           $("#empty-message").empty();
+                }
+
+          },//end response: function...
+
+         /*this select function gets the person id from the returned json array
+        then sends it to  get_person_info.php during the redirect. In a production
+        site this url should be rewritten or encrypted to hide personid*/
+  select: function(event,ui){
+       var person_id = ui.item.id;
+      if(person_id != '') {
+        location.href = '/get_person_info.php?personid=' + person_id;
+                          }
+    }
+
+});//end $( "#get_name").autocomplete({....
+
+</script>
+
+</body>
+</html>
